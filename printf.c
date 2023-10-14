@@ -1,129 +1,96 @@
-/**
- * @author: amirou_diallo & Ahmed salama.
- * 
+/*
+ * File: printf.c
+ * Auth: DIALLO Amirou
+ *       Ahmed Salama
  */
 
 #include "main.h"
 
+void cleanup(va_list args, buffer_t *output);
+int run_printf(const char *format, va_list args, buffer_t *output);
+int _printf(const char *format, ...);
+
 /**
- * check_buffer_overflow - if writing over buffer space,
- * print everything then revert length back to 0 to write at buffer start
- * @buffer: buffer holding string to print
- * @len: position in buffer
- * Return: length position
+ * cleanup - Peforms cleanup operations for _printf.
+ * @args: A va_list of arguments provided to _printf.
+ * @output: A buffer_t struct.
  */
-int check_buffer_overflow(char *buffer, int len)
+void cleanup(va_list args, buffer_t *output)
 {
-	if (len > 1020)
-	{
-		write(1, buffer, len);
-		len = 0;
-	}
-	return (len);
+	va_end(args);
+	write(1, output->start, output->len);
+	free_buffer(output);
 }
 
 /**
- * _printf - mini printf version
- * @format: initial string with all identifiers
- * Return: strings with identifiers expanded
+ * run_printf - Reads through the format string for _printf.
+ * @format: Character string to print - may contain directives.
+ * @output: A buffer_t struct containing a buffer.
+ * @args: A va_list of arguments.
+ *
+ * Return: The number of characters stored to output.
+ */
+int run_printf(const char *format, va_list args, buffer_t *output)
+{
+	int i, wid, prec, ret = 0;
+	char tmp;
+	unsigned char flags, len;
+	unsigned int (*f)(va_list, buffer_t *,
+			unsigned char, int, int, unsigned char);
+
+	for (i = 0; *(format + i); i++)
+	{
+		len = 0;
+		if (*(format + i) == '%')
+		{
+			tmp = 0;
+			flags = handle_flags(format + i + 1, &tmp);
+			wid = handle_width(args, format + i + tmp + 1, &tmp);
+			prec = handle_precision(args, format + i + tmp + 1,
+					&tmp);
+			len = handle_length(format + i + tmp + 1, &tmp);
+
+			f = handle_specifiers(format + i + tmp + 1);
+			if (f != NULL)
+			{
+				i += tmp + 1;
+				ret += f(args, output, flags, wid, prec, len);
+				continue;
+			}
+			else if (*(format + i + tmp + 1) == '\0')
+			{
+				ret = -1;
+				break;
+			}
+		}
+		ret += _memcpy(output, (format + i), 1);
+		i += (len != 0) ? 1 : 0;
+	}
+	cleanup(args, output);
+	return (ret);
+}
+
+/**
+ * _printf - Outputs a formatted string.
+ * @format: Character string to print - may contain directives.
+ *
+ * Return: The number of characters printed.
  */
 int _printf(const char *format, ...)
 {
-	int len = 0, total_len = 0, i = 0, j = 0;
-	va_list list;
-	char *buffer, *str;
-	char* (*f)(va_list);
+	buffer_t *output;
+	va_list args;
+	int ret;
 
 	if (format == NULL)
 		return (-1);
-
-	buffer = create_buffer();
-	if (buffer == NULL)
+	output = init_buffer();
+	if (output == NULL)
 		return (-1);
 
-	va_start(list, format);
+	va_start(args, format);
 
-	while (format[i] != '\0')
-	{
-		if (format[i] != '%') /* copy format into buffer until '%' */
-		{
-			len = check_buffer_overflow(buffer, len);
-			buffer[len++] = format[i++];
-			total_len++;
-		}
-		else /* if %, find function */
-		{
-			i++;
-			if (format[i] == '\0') /* handle single ending % */
-			{
-				va_end(list);
-				free(buffer);
-				return (-1);
-			}
-			if (format[i] == '%') /* handle double %'s */
-			{
-				len = check_buffer_overflow(buffer, len);
-				buffer[len++] = format[i];
-				total_len++;
-			}
-			else
-			{
-				f = get_func(format[i]); /* grab function */
-				if (f == NULL)  /* handle fake id */
-				{
-					len = check_buffer_overflow(buffer, len);
-					buffer[len++] = '%'; total_len++;
-					buffer[len++] = format[i]; total_len++;
-				}
-				else /* return string, copy to buffer */
-				{
-					str = f(list);
-					if (str == NULL)
-					{
-						va_end(list);
-						free(buffer);
-						return (-1);
-					}
-					if (format[i] == 'c' && str[0] == '\0')
-					{
-						len = check_buffer_overflow(buffer, len);
-						buffer[len++] = '\0';
-						total_len++;
-					}
-					j = 0;
-					while (str[j] != '\0')
-					{
-						len = check_buffer_overflow(buffer, len);
-						buffer[len++] = str[j];
-						total_len++; j++;
-					}
-					free(str);
-				}
-			} i++;
-		}
-	}
-	write_buffer(buffer, len, list);
-	return (total_len);
-}
+	ret = run_printf(format, args, output);
 
-/**
- * main - sample main program
- * Return: 0 on sucess
- */
-int main(void)
-{
-	_printf("\n\n\nHere's some examples of what you could do with this custom_printf function!\n\n\n");
-	sleep(1);
-	_printf("\nPrinting Strings, Characters, and Numbers...... %s %c%drld\n\n", "Hello", 'W', 0);
-	sleep(1);
-	_printf("Printing Reverse...... %r \n\n", "Hello");
-	sleep(1);
-	_printf("Printing Binary (base 2)...... %b \n\n", "Hello");
-	sleep(1);
-	_printf("Printing Octal (base 8)...... %o \n\n", "Hello");
-	sleep(1);
-	_printf("Printing Rot13 (encrypt)...... %R \n\n", "Hello");
-	sleep(1);
-	_printf("\n\n             = )                  \n\n\n");
-	return (0);
+	return (ret);
 }
