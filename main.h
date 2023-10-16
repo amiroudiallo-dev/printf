@@ -1,5 +1,5 @@
-#ifndef HOLBERTON_H
-#define HOLBERTON_H
+#ifndef SCHOOL_H
+#define SCHOOL_H
 
 #include <limits.h>
 #include <stdarg.h>
