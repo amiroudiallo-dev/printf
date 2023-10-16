@@ -1,10 +1,10 @@
 /*
  * File: _printf.c
- * Auth: Brennan D Baraban
- *       Michael Klein
+ * Auth: DIALLO Amirou Y W
+ *       Ahmed Salama
  */
 
-#include "holberton.h"
+#include "main.h"
 
 void cleanup(va_list args, buffer_t *output);
 int run_printf(const char *format, va_list args, buffer_t *output);
