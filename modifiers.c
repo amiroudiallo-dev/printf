@@ -1,6 +1,6 @@
 /*
  * File: modifiers.c
- * Auth: Brennan D Baraban
+ * Auth: DIALLO Amirou Y W
  */
 
 #include "main.h"
