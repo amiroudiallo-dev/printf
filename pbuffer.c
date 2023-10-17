@@ -1,4 +1,4 @@
-i#include "main.h"
+#include "main.h"
 
 /**
  * p_buffer - print buffer to stdout
