@@ -7,7 +7,8 @@
 
 #define BUFF_SIZE 1024
 
-int print_integer(int value);
+int p_integer(int num);
 void p_buffer(char buffer[], int *buff_ind);
+int _putchar(char c);
 
 #endif

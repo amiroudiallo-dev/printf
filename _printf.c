@@ -61,8 +61,8 @@ int _printf(const char *format, ...)
             }
             else if (*format == 'd' || *format == 'i') 
             {
-                int value = va_arg(list, int);
-                print = print_integer(value);
+                int num = va_arg(list, int);
+                print = p_integer(num);
                 counter += print;
             }
         }
