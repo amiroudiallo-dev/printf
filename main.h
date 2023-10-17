@@ -8,6 +8,6 @@
 #define BUFF_SIZE 1024
 
 int print_integer(int value);
-void print_buffer(char buffer[], int *buff_ind);
+void p_buffer(char buffer[], int *buff_ind);
 
 #endif
